@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cek Status Mitra — Tahap Seleksi Awal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', 'Helvetica Neue', -apple-system, sans-serif;
+            background: linear-gradient(135deg, #FF8C42 0%, #FF6B35 25%, #F7511B 50%, #FF8C42 75%, #FF6B35 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 30px 80px rgba(255, 107, 53, 0.25);
+            max-width: 550px;
+            width: 100%;
+            padding: 50px 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255, 107, 53, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 35px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: 800;
+            color: #2D3748;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            color: #718096;
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: #2D3748;
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #E2E8F0;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #F7FAFC;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #FF6B35;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+        }
+
+        .btn-check {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #FF8C42 0%, #FF6B35 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-check:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(255, 107, 53, 0.3);
+        }
+
+        .btn-check:active {
+            transform: translateY(-1px);
+        }
+
+        .btn-check:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .character-container {
+            text-align: center;
+            margin: 25px 0;
+            min-height: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .character-img {
+            max-width: 130px;
+            height: auto;
+            animation: bounce 3s ease-in-out infinite;
+            filter: drop-shadow(0 8px 16px rgba(255, 107, 53, 0.15));
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .result {
+            margin-top: 30px;
+            padding: 25px;
+            border-radius: 16px;
+            display: none;
+            animation: slideIn 0.4s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result.success {
+            background: linear-gradient(135deg, #D4F4DD 0%, #B7E4C7 100%);
+            border: 2px solid #52B788;
+        }
+
+        .result.error {
+            background: linear-gradient(135deg, #FFE5D9 0%, #FFD4BA 100%);
+            border: 2px solid #FF8C42;
+        }
+
+        .result.not-found {
+            background: linear-gradient(135deg, #FFF4D4 0%, #FFE8B3 100%);
+            border: 2px solid #F7511B;
+        }
+
+        .result h2 {
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .result.success h2 {
+            color: #1B4332;
+        }
+
+        .result.error h2 {
+            color: #4A3728;
+        }
+
+        .result.not-found h2 {
+            color: #5C3D2E;
+        }
+
+        .result p {
+            color: #333;
+            font-size: 15px;
+            line-height: 1.7;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .invitation-code {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 16px;
+            border-radius: 12px;
+            margin-top: 15px;
+            border: 2px dashed #52B788;
+            backdrop-filter: blur(10px);
+        }
+
+        .invitation-code label {
+            display: block;
+            font-size: 12px;
+            color: #1B4332;
+            margin-bottom: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .invitation-code-value {
+            font-size: 24px;
+            font-weight: 900;
+            color: #1B4332;
+            font-family: 'Monaco', 'Courier New', monospace;
+            text-align: center;
+            letter-spacing: 3px;
+            word-spacing: 8px;
+        }
+
+        .instructions {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 15px;
+            font-size: 13px;
+            color: #333;
+            line-height: 1.8;
+            backdrop-filter: blur(10px);
+        }
+
+        .instructions strong {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #1B4332;
+        }
+
+        .instructions li {
+            margin-left: 20px;
+            margin-bottom: 6px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 25px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .spinner {
+            border: 4px solid #F0F0F0;
+            border-top: 4px solid #FF6B35;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading p {
+            margin-top: 15px;
+            color: #666;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .error-message {
+            color: #E74C3C;
+            font-size: 13px;
+            margin-top: 8px;
+            display: none;
+            font-weight: 600;
+        }
+
+        .icon {
+            font-size: 28px;
+            display: inline-block;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 35px 25px;
+                border-radius: 16px;
+            }
+
+            .header h1 {
+                font-size: 26px;
+            }
+
+            .result {
+                padding: 20px;
+            }
+
+            .character-img {
+                max-width: 110px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Cek Status Mitra</h1>
+            <p>Tahap Seleksi Awal 2025</p>
+        </div>
+
+        <form id="checkForm">
+            <div class="form-group">
+                <label for="email">Email Pendaftaran</label>
+                <input 
+                    type="email" 
+                    id="email" 
+                    name="email" 
+                    placeholder="nama@example.com" 
+                    required
+                >
+                <div class="error-message" id="emailError"></div>
+            </div>
+            <button type="submit" class="btn-check" id="submitBtn">Cek Sekarang</button>
+        </form>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Sedang memeriksa data...</p>
+        </div>
+
+        <!-- Success Result -->
+        <div class="result success" id="resultSuccess" style="display: none;">
+            <div class="character-container">
+                <img src="https://user-gen-media-assets.s3.amazonaws.com/seedream_images/4c868fcd-336a-4961-9286-80be514d5677.png" alt="Professional Woman" class="character-img">
+            </div>
+            <h2><span class="icon">✅</span> Selamat!</h2>
+            <p>Kamu lolos tahap seleksi awal! Wow, amazing! Lanjutkan ke tahap berikutnya. 🚀</p>
+            <div class="invitation-code">
+                <label>🔑 Kode Undangan Tes Akademik</label>
+                <div class="invitation-code-value" id="invitationCode">AKD-2025-XXXXX</div>
+            </div>
+            <div class="instructions">
+                <strong>✨ Langkah Berikutnya:</strong>
+                <ul>
+                    <li>💾 Simpan kode undangan di atas dengan baik</li>
+                    <li>🔗 Gunakan kode ini saat login ke portal tes akademik</li>
+                    <li>📅 Tes akademik dimulai sesuai jadwal yang ditentukan</li>
+                    <li>💬 Hubungi support jika ada pertanyaan IG: @bps_mbd</li>
+                    <li> Whatsapp Only 087757984020 (Chat Saja, Jangan Telpon/call)</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Not Accepted Result -->
+        <div class="result error" id="resultFailed" style="display: none;">
+            <div class="character-container">
+                <img src="https://user-gen-media-assets.s3.amazonaws.com/seedream_images/7ae5940c-3bb5-43c3-a49f-257f9e0c1dc0.png" alt="Professional Man" class="character-img">
+            </div>
+            <h2><span class="icon">💼</span> Jangan Menyerah!</h2>
+            <p>Belum lolos tahap ini, tapi ini bukan akhir! Ada kesempatan lagi di periode berikutnya. Terus semangat! 💪</p>
+            <div class="instructions">
+                <strong>🎯 Tips Untuk Kedepannya:</strong>
+                <ul>
+                    <li>📚 Follow Insatagram BPS : @bps_mbd</li>
+                    <li>💌 Daftar kembali di periode seleksi berikutnya</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Not Found Result -->
+        <div class="result not-found" id="resultNotFound" style="display: none;">
+            <div class="character-container">
+                <img src="https://user-gen-media-assets.s3.amazonaws.com/seedream_images/15d1d2b9-738e-4206-8337-79e18fb0fb56.png" alt="Professional Woman" class="character-img">
+            </div>
+            <h2><span class="icon">🔍</span> Data Tidak Ditemukan</h2>
+            <p>Email yang kamu masukkan belum terdaftar di sistem kami. Periksa lagi dengan teliti ya! 👀</p>
+            <div class="instructions">
+                <strong>⚡ Kemungkinan Penyebab:</strong>
+                <ul>
+                    <li>✍️ Email yang dimasukkan berbeda dengan saat pendaftaran</li>
+                    <li>🤔 Belum melakukan pendaftaran sebelumnya</li>
+                    <li>📧 Typo pada email (spasi, tanda baca, dll)</li>
+                    <li>📞 Hubungi 087757984020 (whatsapp only) untuk bantuan lebih lanjut</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script>
+        // ===== KONFIGURASI SUPABASE (UPDATE INI!) =====
+        const SUPABASE_URL = 'https://pbxstnmaiuhxiazsgbvc.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBieHN0bm1haXVoeGlhenNnYnZjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMyMDA5NjEsImV4cCI6MjA3ODc3Njk2MX0.7EXdFVpjH5NVl6W5Rwn0h7LENu6gNgS-WdgQN9LeqkI';
+
+        let supabase = null;
+
+        // Initialize Supabase
+        try {
+            const { createClient } = window.supabase;
+            supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+            console.log('✅ Supabase initialized successfully');
+        } catch (error) {
+            console.error('❌ Failed to initialize Supabase:', error);
+        }
+
+        // ===== ELEMENT REFERENCES =====
+        const checkForm = document.getElementById('checkForm');
+        const emailInput = document.getElementById('email');
+        const submitBtn = document.getElementById('submitBtn');
+        const loading = document.getElementById('loading');
+        const resultSuccess = document.getElementById('resultSuccess');
+        const resultFailed = document.getElementById('resultFailed');
+        const resultNotFound = document.getElementById('resultNotFound');
+        const invitationCode = document.getElementById('invitationCode');
+        const emailError = document.getElementById('emailError');
+
+        // ===== FORM SUBMISSION =====
+        checkForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await checkStatus();
+        });
+
+        // ===== VALIDASI EMAIL =====
+        function validateEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        // ===== CEK STATUS =====
+        async function checkStatus() {
+            const email = emailInput.value.trim().toLowerCase();
+
+            // Reset state
+            emailError.style.display = 'none';
+            emailError.textContent = '';
+            resultSuccess.style.display = 'none';
+            resultFailed.style.display = 'none';
+            resultNotFound.style.display = 'none';
+
+            // Validasi client-side
+            if (!validateEmail(email)) {
+                emailError.textContent = 'Format email tidak valid. Contoh: nama@example.com';
+                emailError.style.display = 'block';
+                return;
+            }
+
+            // Tampilkan loading
+            loading.style.display = 'block';
+            submitBtn.disabled = true;
+
+            try {
+                if (!supabase) {
+                    throw new Error('Supabase belum terinisialisasi');
+                }
+
+                console.log('🔍 Mencari email:', email);
+
+                // Query ke Supabase
+                const { data, error } = await supabase
+                    .from('applicants')
+                    .select('email, status, invitation_code')
+                    .eq('email', email)
+                    .single();
+
+                console.log('Response:', { data, error });
+
+                if (error) {
+                    if (error.code === 'PGRST116' || error.code === 'ERR_SINGLE_EMPTY') {
+                        // Email tidak ditemukan
+                        console.log('ℹ️ Email tidak ditemukan di database');
+                        resultNotFound.style.display = 'block';
+                    } else {
+                        // Error lainnya
+                        console.error('Error:', error);
+                        emailError.textContent = error.message || 'Terjadi kesalahan. Coba lagi.';
+                        emailError.style.display = 'block';
+                    }
+                } else if (data) {
+                    // Email ditemukan
+                    console.log('✅ Email ditemukan:', data);
+                    
+                    if (data.status === 'lolos') {
+                        invitationCode.textContent = data.invitation_code || 'N/A';
+                        resultSuccess.style.display = 'block';
+                    } else {
+                        resultFailed.style.display = 'block';
+                    }
+                } else {
+                    // Tidak ada error tapi juga tidak ada data
+                    resultNotFound.style.display = 'block';
+                }
+            } catch (err) {
+                console.error('❌ Exception:', err);
+                emailError.textContent = 'Terjadi kesalahan sistem. Coba lagi nanti.';
+                emailError.style.display = 'block';
+            } finally {
+                loading.style.display = 'none';
+                submitBtn.disabled = false;
+            }
+        }
+
+        // ===== INPUT HANDLING =====
+        emailInput.addEventListener('input', () => {
+            if (emailError.style.display === 'block') {
+                emailError.style.display = 'none';
+            }
+            resultSuccess.style.display = 'none';
+            resultFailed.style.display = 'none';
+            resultNotFound.style.display = 'none';
+        });
+    </script>
+</body>
+</html>
